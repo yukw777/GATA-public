@@ -1,14 +1,16 @@
 import yaml
 import json
 import networkx as nx
-import matplotlib.pyplot as plt
 
 
 from agent import Agent
 from dgu.graph import process_triplet_cmd
+from dgu.utils import draw_graph
 
 
-def main(config_filename: str, data_filename: str, ckpt_filename: str) -> None:
+def main(
+    config_filename: str, data_filename: str, ckpt_filename: str, graph_filename: str
+) -> None:
     with open(config_filename) as f:
         config = yaml.safe_load(f)
     agent = Agent(config)
@@ -31,7 +33,7 @@ def main(config_filename: str, data_filename: str, ckpt_filename: str) -> None:
                 predict_cmds = predict_cmds[:-1]
             cmds = []
             for item in predict_cmds:
-                if item == '':
+                if item == "":
                     continue
                 parts = item.split()
                 cmds.append(
@@ -41,20 +43,11 @@ def main(config_filename: str, data_filename: str, ckpt_filename: str) -> None:
             for cmd in cmds:
                 print(cmd)
                 process_triplet_cmd(graph, t, cmd)
-            pos = nx.nx_agraph.graphviz_layout(graph, prog="sfdp")
-            nx.draw(
-                graph,
-                pos=pos,
-                font_size=10,
-                node_size=1200,
-                labels={n: n.label for n in graph.nodes},
-            )
-            nx.draw_networkx_edge_labels(
-                graph,
-                pos,
-                edge_labels=nx.get_edge_attributes(graph, "label"),
-            )
-            plt.show()
+
+            for n, data in graph.nodes.data():
+                data["label"] = n.label
+            draw_graph(graph, graph_filename)
+            input(">> ")
 
 
 if __name__ == "__main__":
@@ -64,5 +57,11 @@ if __name__ == "__main__":
     parser.add_argument("config_filename")
     parser.add_argument("data_filename")
     parser.add_argument("ckpt_filename")
+    parser.add_argument("graph_filename")
     args = parser.parse_args()
-    main(args.config_filename, args.data_filename, args.ckpt_filename)
+    main(
+        args.config_filename,
+        args.data_filename,
+        args.ckpt_filename,
+        args.graph_filename,
+    )
