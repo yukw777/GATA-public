@@ -4,7 +4,6 @@ import networkx as nx
 
 
 from agent import Agent
-from dgu.graph import process_triplet_cmd
 from dgu.utils import draw_graph
 
 
@@ -31,21 +30,20 @@ def main(
                 predict_cmds[-1] = predict_cmds[-1][:-5].strip()
             else:
                 predict_cmds = predict_cmds[:-1]
-            cmds = []
             for item in predict_cmds:
                 if item == "":
                     continue
                 parts = item.split()
-                cmds.append(
-                    " , ".join([parts[0], " ".join(parts[1:-2]), parts[-2], parts[-1]])
-                )
-
-            for cmd in cmds:
-                print(cmd)
-                process_triplet_cmd(graph, t, cmd)
-
-            for n, data in graph.nodes.data():
-                data["label"] = n.label
+                cmd = parts[0].strip()
+                src = " ".join(parts[1:-2])
+                dst = parts[-2]
+                edge = parts[-1]
+                if cmd == "add":
+                    graph.add_edge(src, dst, label=edge)
+                elif cmd == "delete":
+                    graph.remove_edge(src, dst)
+                else:
+                    raise ValueError(f"Unknown command: {cmd}")
             draw_graph(graph, graph_filename)
             input(">> ")
 
