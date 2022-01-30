@@ -13,7 +13,12 @@ from agent import Agent
 
 
 def main(
-    config_filename: str, data_filename: str, ckpt_filename: str, batch_size: int
+    config_filename: str,
+    data_filename: str,
+    ckpt_filename: str,
+    f1_scores_filename: str,
+    em_scores_filename: str,
+    batch_size: int,
 ) -> None:
     with open(config_filename) as f:
         config = yaml.safe_load(f)
@@ -105,6 +110,10 @@ def main(
                 )
     print(f"Free Run Graph F1: {graph_f1.compute()}")
     print(f"Free Run Graph EM: {graph_em.compute()}")
+    if f1_scores_filename:
+        torch.save(graph_f1.scores.cpu(), f1_scores_filename)
+    if em_scores_filename:
+        torch.save(graph_em.scores.cpu(), em_scores_filename)
 
 
 if __name__ == "__main__":
@@ -114,6 +123,15 @@ if __name__ == "__main__":
     parser.add_argument("config_filename")
     parser.add_argument("data_filename")
     parser.add_argument("ckpt_filename")
+    parser.add_argument("--f1-scores-filename", default="")
+    parser.add_argument("--em-scores-filename", default="")
     parser.add_argument("--batch-size", default=512, type=int)
     args = parser.parse_args()
-    main(args.config_filename, args.data_filename, args.ckpt_filename, args.batch_size)
+    main(
+        args.config_filename,
+        args.data_filename,
+        args.ckpt_filename,
+        args.f1_scores_filename,
+        args.em_scores_filename,
+        args.batch_size,
+    )
