@@ -7,3 +7,5 @@ tqdm
 pipreqs
 pyyaml
 visdom
+pygraphviz
+pyqt5
