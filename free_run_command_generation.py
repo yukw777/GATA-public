@@ -32,6 +32,8 @@ def main(
     graph_em = ExactMatch()
 
     game_id_to_step_data_graph: Dict[int, Tuple[Dict[str, Any], List[List[str]]]] = {}
+    f1_scores_per_game: Dict[Tuple[str, int], float] = {}
+    em_scores_per_game: Dict[Tuple[str, int], float] = {}
     with tqdm.tqdm(total=len(dataset)) as pbar:
         for batch in dataloader:
             # finished games are the ones that were in game_id_to_graph, but are not
@@ -68,6 +70,15 @@ def main(
                         "graph_em": graph_em.compute().item(),
                     }
                 )
+                game, walkthrough_step = dataset.walkthrough_example_ids[
+                    finished_game_id
+                ]
+                f1_scores_per_game[(game, walkthrough_step)] = graph_f1.scores[
+                    -1
+                ].item()
+                em_scores_per_game[(game, walkthrough_step)] = graph_em.scores[
+                    -1
+                ].item()
 
             # new games are the ones that were not in game_id_to_graph, but are now
             # part of the new batch.
@@ -111,9 +122,9 @@ def main(
     print(f"Free Run Graph F1: {graph_f1.compute()}")
     print(f"Free Run Graph EM: {graph_em.compute()}")
     if f1_scores_filename:
-        torch.save(graph_f1.scores.cpu(), f1_scores_filename)
+        torch.save(f1_scores_per_game, f1_scores_filename)
     if em_scores_filename:
-        torch.save(graph_em.scores.cpu(), em_scores_filename)
+        torch.save(em_scores_per_game, em_scores_filename)
 
 
 if __name__ == "__main__":
